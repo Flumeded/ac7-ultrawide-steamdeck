@@ -34,8 +34,8 @@ else:
     print('Unsupported OS.')
     sys.exit(0)
 
-print(f"Screen resolution: {your_total_width}x{your_total_height}")
-print('If resolution retrieved incorrectly, please close the console or press Ctrl +C')
+print(f"Screen resolution: {your_total_height}x{your_total_width}")
+print('If resolution retrieved incorrectly, please close the console or press Ctrl+C')
 print('Program will continue in 20 seconds')
 time.sleep(20)
 
