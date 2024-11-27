@@ -44,9 +44,7 @@ if ! flatpak list | grep -q com.github.Matoking.protontricks; then
         if protontricks -V &> /dev/null; then
             success_message "Protontricks is already installed and functioning."
         else
-            failure_message "Protontricks installation failed and could not verify an existing installation."
-            failure_message "If you do not have Flatpak, install protontricks manually"
-            failure_message "Exiting."
+            failure_message "Protontricks installation failed and could not verify an existing installation. Exiting."
             exit 1
         fi
     fi
@@ -122,20 +120,22 @@ info_message "Please wait, starting winecfg, this will take around 20-60 seconds
 instruction_message "Once winecfg window appears, open Drives → select 'Show dot files' and click 'OK'"
 
 # Run winecfg with protontricks for the game and wait until closed
-{
-    if flatpak list | grep -q com.github.Matoking.protontricks; then
-        info_message "Running winecfg using Flatpak Protontricks..."
-        flatpak run com.github.Matoking.protontricks 502500 winecfg >/dev/null 2>&1
+if flatpak list | grep -q com.github.Matoking.protontricks; then
+    info_message "Running winecfg using Flatpak Protontricks..."
+    flatpak run com.github.Matoking.protontricks 502500 winecfg >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        success_message "winecfg has been closed."
     else
-        info_message "Flatpak Protontricks not found, using system-installed Protontricks..."
-        protontricks 502500 winecfg >/dev/null 2>&1
+        failure_message "Failed to run winecfg with Flatpak Protontricks."
     fi
-}
-
-flatpak run com.github.Matoking.protontricks 502500 winecfg >/dev/null 2>&1
-    success_message "winecfg has been closed."
 else
-    failure_message "Failed to run winecfg."
+    info_message "Flatpak Protontricks not found, using system-installed Protontricks..."
+    protontricks 502500 winecfg >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        success_message "winecfg has been closed."
+    else
+        failure_message "Failed to run winecfg with system-installed Protontricks."
+    fi
 fi
 
 info_message "Steamless is starting now, this will take some time."
@@ -143,20 +143,22 @@ instruction_message "In Steamless: Select File to Unpack [...] and then navigate
 instruction_message "Disk '/' → home → deck → .local → share → Steam → steamapps → common → ACE COMBAT 7 → Ace7Game.exe"
 instruction_message "Select 'Unpack file', and once you see 'Successfully unpacked file' close the Steamless window"
 # Run Steamless executable with protontricks-launch and wait until closed
-{
-    if flatpak list | grep -q com.github.Matoking.protontricks; then
-        info_message "Running Steamless using Flatpak Protontricks..."
-        flatpak run --command=protontricks-launch com.github.Matoking.protontricks --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
+if flatpak list | grep -q com.github.Matoking.protontricks; then
+    info_message "Running Steamless using Flatpak Protontricks..."
+    flatpak run --command=protontricks-launch com.github.Matoking.protontricks --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        success_message "Steamless has been closed."
     else
-        info_message "Flatpak Protontricks not found, using system-installed Protontricks-launch..."
-        protontricks-launch --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
+        failure_message "Failed to execute Steamless with Flatpak Protontricks."
     fi
-}
-
-flatpak run --command=protontricks-launch com.github.Matoking.protontricks --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
-    success_message "Steamless has been closed."
 else
-    failure_message "Failed to execute Steamless."
+    info_message "Flatpak Protontricks not found, using system-installed Protontricks-launch..."
+    protontricks-launch --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        success_message "Steamless has been closed."
+    else
+        failure_message "Failed to execute Steamless with system-installed Protontricks-launch."
+    fi
 fi
 
 info_message "Renaming patched .exe"
