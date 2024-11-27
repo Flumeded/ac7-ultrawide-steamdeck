@@ -9,12 +9,14 @@ if not os.path.isfile('Ace7Game.exe'):
 # Add warning about the risk of getting flagged by anticheat.
 print('WARNING: This mod may be flagged as a cheating tool by the new Ace Combat 7 anti-cheat system going live in August 2019.')
 print('This developer holds no responsibility if this mod results in an online ban.')
-print('If you do not agree, close the program now. Otherwise, the program will continue automatically in 20 seconds.')
+print('If you do not agree, close the program now. Otherwise, the program will continue automatically in 30 seconds.')
+print('This script will set resolution to 1280x800, if you are using different resolution, modify magic.py file')
 
-time.sleep(20)
+time.sleep(30)
 
 print('Continuing with the process...')
 
+# -----> MODIFY HERE < -----
 [your_total_width, your_total_height] = 1280, 800
 your_aspect_ratio = your_total_width / your_total_height
 
