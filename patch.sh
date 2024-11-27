@@ -28,16 +28,32 @@ function instruction_message() {
 }
 
 info_message "Checking if protontricks is installed"
+
 # Install protontricks via flatpak if not installed
 if ! flatpak list | grep -q com.github.Matoking.protontricks; then
     info_message "Protontricks not found. Installing via flatpak..."
     flatpak install -y com.github.Matoking.protontricks
+
     if [ $? -eq 0 ]; then
         success_message "Protontricks installed successfully."
     else
-        failure_message "Failed to install Protontricks."
+        failure_message "Failed to install Protontricks via flatpak."
+        
+        # Try to run protontricks -v to see if it's already available
+        info_message "Attempting to verify if protontricks is already installed..."
+        if protontricks -V &> /dev/null; then
+            success_message "Protontricks is already installed and functioning."
+        else
+            failure_message "Protontricks installation failed and could not verify an existing installation."
+            failure_message "If you do not have Flatpak, install protontricks manually"
+            failure_message "Exiting."
+            exit 1
+        fi
     fi
+else
+    success_message "Protontricks is already installed."
 fi
+
 
 info_message "Moving mod files to game directory"
 # Move Mods, ShaderFixes, and magic.py to AC_DIR using rsync
@@ -106,9 +122,17 @@ info_message "Please wait, starting winecfg, this will take around 20-60 seconds
 instruction_message "Once winecfg window appears, open Drives → select 'Show dot files' and click 'OK'"
 
 # Run winecfg with protontricks for the game and wait until closed
-flatpak run com.github.Matoking.protontricks 502500 winecfg >/dev/null 2>&1
+{
+    if flatpak list | grep -q com.github.Matoking.protontricks; then
+        info_message "Running winecfg using Flatpak Protontricks..."
+        flatpak run com.github.Matoking.protontricks 502500 winecfg >/dev/null 2>&1
+    else
+        info_message "Flatpak Protontricks not found, using system-installed Protontricks..."
+        protontricks 502500 winecfg >/dev/null 2>&1
+    fi
+}
 
-if [ $? -eq 0 ]; then
+flatpak run com.github.Matoking.protontricks 502500 winecfg >/dev/null 2>&1
     success_message "winecfg has been closed."
 else
     failure_message "Failed to run winecfg."
@@ -119,9 +143,17 @@ instruction_message "In Steamless: Select File to Unpack [...] and then navigate
 instruction_message "Disk '/' → home → deck → .local → share → Steam → steamapps → common → ACE COMBAT 7 → Ace7Game.exe"
 instruction_message "Select 'Unpack file', and once you see 'Successfully unpacked file' close the Steamless window"
 # Run Steamless executable with protontricks-launch and wait until closed
-flatpak run --command=protontricks-launch com.github.Matoking.protontricks --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
+{
+    if flatpak list | grep -q com.github.Matoking.protontricks; then
+        info_message "Running Steamless using Flatpak Protontricks..."
+        flatpak run --command=protontricks-launch com.github.Matoking.protontricks --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
+    else
+        info_message "Flatpak Protontricks not found, using system-installed Protontricks-launch..."
+        protontricks-launch --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
+    fi
+}
 
-if [ $? -eq 0 ]; then
+flatpak run --command=protontricks-launch com.github.Matoking.protontricks --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
     success_message "Steamless has been closed."
 else
     failure_message "Failed to execute Steamless."
