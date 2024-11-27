@@ -9,34 +9,18 @@ if not os.path.isfile('Ace7Game.exe'):
 # Add warning about the risk of getting flagged by anticheat.
 print('WARNING: This mod may be flagged as a cheating tool by the new Ace Combat 7 anti-cheat system going live in August 2019.')
 print('This developer holds no responsibility if this mod results in an online ban.')
-prompt = ''
-while prompt.lower() != 'y':
-    prompt = input('Are you sure you wish to continue? Y to continue, N to cancel:')
+print('If you do not agree, close the program now. Otherwise, the program will continue automatically in 20 seconds.')
 
-    if prompt.lower() == 'n':
-        wait = input('Canceled. Press any key to close.')
-        sys.exit(0)
+time.sleep(20)
 
-# Get resolution from OS.
-u32 = ctypes.windll.user32
-u32.SetProcessDPIAware()
+print('Continuing with the process...')
 
-[your_total_width, your_total_height] = [u32.GetSystemMetrics(0), u32.GetSystemMetrics(1)]
+[your_total_width, your_total_height] = 1280, 800
 your_aspect_ratio = your_total_width / your_total_height
 
 # Game calculates positions as if your monitor was always 1080p. These values are useful for those calculations.
 standard_monitor_height = 1080
 standardized_monitor_width = your_total_width * (standard_monitor_height / your_total_height)
-
-# Get confirmation from user.
-print('Your screen size appears to be ' + str(your_total_width) + 'x' + str(your_total_height) + '.')
-prompt = ''
-while prompt.lower() != 'y':
-    prompt = input('Is that correct? Y to continue, N to cancel:')
-
-    if prompt.lower() == 'n':
-        wait = input('Canceled. Press any key to close.')
-        sys.exit(0)
 
 # Determining FOV hex value.
 # Math below is based on FOV equations found on Wikipedia. Aspect Ratio = tan(H/2) / tan(V/2)
