@@ -1,4 +1,4 @@
-import sys, os, shutil, binascii, zipfile, ctypes, math, glob, time
+import sys, os, shutil, binascii, zipfile, ctypes, math, glob, time, subprocess
 from datetime import datetime
 
 # Must be in game root folder.
@@ -9,17 +9,37 @@ if not os.path.isfile('Ace7Game.exe'):
 # Add warning about the risk of getting flagged by anticheat.
 print('WARNING: This mod may be flagged as a cheating tool by the new Ace Combat 7 anti-cheat system going live in August 2019.')
 print('This developer holds no responsibility if this mod results in an online ban.')
-print('If you do not agree, close the program now. Otherwise, the program will continue automatically in 30 seconds.')
-print('This script will set resolution to 1280x800, if you are using different resolution, modify magic.py file')
+print('If you do not agree, close the program now. Otherwise, the program will continue automatically in 20 seconds.')
 
-time.sleep(30)
+time.sleep(20)
 
 print('Continuing with the process...')
 
-# -----> MODIFY HERE < -----
-[your_total_width, your_total_height] = 1280, 800
-your_aspect_ratio = your_total_width / your_total_height
+# Get resolution from OS.
+if sys.platform == 'win32':
+    from win32api import GetSystemMetrics
+    your_total_width = GetSystemMetrics(0)
+    your_total_height = GetSystemMetrics(1)
+elif sys.platform.startswith('linux'):
+    cmd = ['xrandr']
+    cmd2 = ['grep', '*']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(cmd2, stdin=p.stdout, stdout=subprocess.PIPE)
+    p.stdout.close()
 
+    resolution_string, junk = p2.communicate()
+    resolution = resolution_string.split()[0]
+    your_total_width, your_total_height = map(int, resolution.split(b'x'))
+else:
+    print('Unsupported OS.')
+    sys.exit(0)
+
+print(f"Screen resolution: {your_total_width}x{your_total_height}")
+print('If resolution retrieved incorrectly, please close the console or press Ctrl +C')
+print('Program will continue in 20 seconds')
+time.sleep(20)
+
+your_aspect_ratio = your_total_width / your_total_height
 # Game calculates positions as if your monitor was always 1080p. These values are useful for those calculations.
 standard_monitor_height = 1080
 standardized_monitor_width = your_total_width * (standard_monitor_height / your_total_height)
