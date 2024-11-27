@@ -1,45 +1,41 @@
-# ac7-ultrawide
-Mod AC7 to work at ultrawide resolutions.
+# Ace Combat 7 Resolution Fix for the Steam Deck
 
-What it does:
+This mod adapts Ace Combat 7 (AC7) to work seamlessly with Steam Deck resolutions. This fork provides configuration automation, making installation and setup as easy as possible.
 
-1. Determines the resolution of the user's monitor(s).
-2. Creates a time-stamped backup of the game executable. This is NOT for redistribution!
-3. Hex edits the game executable to remove letterboxing (black side bars) and adjust the field of view (FOV).
-4. Compares the modified exe against the backup to determine successful hex editing.
-5. Unpacks 3Dmigoto into the game directory.
-6. Modifies the shader files for the correct position and resolution.
+It enables you to patch the game without needing a mouse, keyboard, or Windows.
 
-WARNING: 
+For more details, refer to the [original repository](https://github.com/massimilianodelliubaldini/ac7-ultrawide).
 
-Due to the fact that this mod makes direct modification to the game executable, 
-the game's new anticheat system may flag you and get you permanently banned from online play. 
-This developer holds no responsibility if this happens to you! 
+## How to Use
 
-Prerequisites:
+Clone the repository, navigate into the folder, make the script executable, and then run the patch script:
 
-1. [Python 3.5 or newer](https://www.python.org/downloads/) (Make sure you allow it to modify your Windows PATH environment variable upon installation)
-2. [3Dmigoto 1.3.16 or newer](https://github.com/bo3b/3Dmigoto/releases/) (You just need "3Dmigoto-1.3.\*.zip")
+```bash
+git clone https://github.com/Flumeded/ac7-ultrawide-steamdeck
+cd ac7-ultrawide-steamdeck
+chmod +x patch.sh
+./patch.sh
+```
 
-    **Warning:** The order of releases on the 3Dmigoto page is not completely chronological due to the way the file names are sorted, ensure that you are downloading the latest version by file name, not order in the list.
+Follow the instructions displayed in the console.
 
-Installation: 
+In Steam:
+- Right-click on the game → Properties...
+- Compatibility → Force the use of a specific Steam Play compatibility tool
+- Select Proton 8.0-5
+- Start the game 💫
 
-1. Download a zip file of 3Dmigoto and save it to \<Steam Installation Location\>\SteamApps\common\ACE COMBAT 7.
-2. Clone this repository to, or download a zip and unpack it in, \<Steam Installation Location\>\SteamApps\common\ACE COMBAT 7.
-3. Double magic.py click to run.
+## What It Does
 
-Uninstallation:
+- Ensures **protontricks** is installed.
+- Downloads necessary files for the patch.
+- Opens **winecfg** to manually enable hidden files in the file explorer.
+- Launches **steamless** for manually patching the AC7 executable.
+- Starts a Python script to apply the resolution fix.
 
-1. Delete d3d11.dll from your game directory.
-2. Delete Ace7Game.exe from your game directory.
-3. "Verify integrity of game files" in Steam. This will re-download the most up-to-date executable.
+## Uninstallation
 
-TODO:
-
-1. Continue using most-up-to-date shader fixes.
-2. Make install script more robust with user feedback.
-3. Make installation less complex.
-4. Improve code reuse.
-
+1. Delete `d3d11.dll` from your game directory.
+2. Delete `Ace7Game.exe` from your game directory.
+3. Use "Verify integrity of game files" in Steam to re-download the most up-to-date executable.
 
