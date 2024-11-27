@@ -294,4 +294,5 @@ else:
         config_ini.write(config_ini_data);
         config_ini.close()
 
-wait = input('Script completed successfully. Press any key to close.')
+print('Script completed successfully. The program will close automatically in 10 seconds...')
+time.sleep(10)
