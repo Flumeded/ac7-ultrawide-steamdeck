@@ -4,6 +4,9 @@ This mod adapts Ace Combat 7 (AC7) to work seamlessly with Steam Deck resolution
 
 It enables you to patch the game without needing a mouse, keyboard, or Windows.
 
+It will also work with any regular Linux installation.  
+Just make sure [protontriks](https://github.com/Matoking/protontricks) is installed and modify `magic.py` [line 20](https://github.com/Flumeded/ac7-ultrawide-steamdeck/blob/02aa4b5013ba8a1865fbcd5e2190468835e42e09/magic.py#L20) with your screen's resolution.  
+
 For more details, refer to the [original repository](https://github.com/massimilianodelliubaldini/ac7-ultrawide).
 
 ## How to Use
