@@ -15,26 +15,49 @@ time.sleep(20)
 
 print('Continuing with the process...')
 
-# Get resolution from OS.
+def is_steamos():
+    """Detect if the script is running on SteamOS."""
+    # Check /etc/os-release for SteamOS
+    if sys.platform.startswith('linux') and os.path.exists('/etc/os-release'):
+        try:
+            with open('/etc/os-release', 'r') as f:
+                os_release = f.read()
+                if "SteamOS" in os_release:
+                    return True
+        except Exception:
+            pass  # Silently ignore errors and proceed as if we didn't check
+    return False
+
+# Get resolution from the OS
 if sys.platform == 'win32':
     from win32api import GetSystemMetrics
     your_total_width = GetSystemMetrics(0)
     your_total_height = GetSystemMetrics(1)
 elif sys.platform.startswith('linux'):
-    cmd = ['xrandr']
-    cmd2 = ['grep', '*']
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(cmd2, stdin=p.stdout, stdout=subprocess.PIPE)
-    p.stdout.close()
+    if is_steamos():
+        # SteamOS-specific resolution
+        # SD has strange screen, and it returns as flipped on check
+        your_total_width = 1280
+        your_total_height = 800
+    else:
+        try:
+            cmd = ['xrandr']
+            cmd2 = ['grep', '*']
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(cmd2, stdin=p.stdout, stdout=subprocess.PIPE)
+            p.stdout.close()
 
-    resolution_string, junk = p2.communicate()
-    resolution = resolution_string.split()[0]
-    your_total_width, your_total_height = map(int, resolution.split(b'x'))
+            resolution_string, _ = p2.communicate()
+            resolution = resolution_string.split()[0]
+            your_total_width, your_total_height = map(int, resolution.split(b'x'))
+        except Exception:
+            sys.exit("Error detecting resolution on Linux.")
 else:
-    print('Unsupported OS.')
-    sys.exit(0)
+    sys.exit("Unsupported OS.")
 
-print(f"Screen resolution: {your_total_height}x{your_total_width}")
+
+print(f"Screen resolution: {your_total_width}x{your_total_height}")
+print('Steam Deck resolution should be 1280x800')
 print('If resolution retrieved incorrectly, please close the console or press Ctrl+C')
 print('Program will continue in 20 seconds')
 time.sleep(20)
