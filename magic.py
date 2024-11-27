@@ -56,8 +56,7 @@ else:
     sys.exit("Unsupported OS.")
 
 
-print(f"Screen resolution: {your_total_width}x{your_total_height}")
-print('Steam Deck resolution should be 1280x800')
+print(f"Detected screen resolution: {your_total_width}x{your_total_height}")
 print('If resolution retrieved incorrectly, please close the console or press Ctrl+C')
 print('Program will continue in 20 seconds')
 time.sleep(20)
