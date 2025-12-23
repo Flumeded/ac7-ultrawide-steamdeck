@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # 3D Migoto URL
 MIGOTO_URL="https://github.com/bo3b/3Dmigoto/releases/download/1.3.16/3Dmigoto-1.3.16.zip"
@@ -6,6 +7,24 @@ MIGOTO_URL="https://github.com/bo3b/3Dmigoto/releases/download/1.3.16/3Dmigoto-1
 AC_DIR="/home/deck/.local/share/Steam/steamapps/common/ACE COMBAT 7/"
 # Scripts directory
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+# Proton prefix location for AC7 (used to map an extra drive letter)
+PFX_DIR="/home/deck/.local/share/Steam/steamapps/compatdata/502500/pfx"
+DOSDEV_DIR="${PFX_DIR}/dosdevices"
+
+# Cleanup to run on exit (success or failure)
+cleanup() {
+    set +e
+    # Remove drive mapping
+    if [ -L "${DOSDEV_DIR}/g:" ]; then
+        rm -f "${DOSDEV_DIR}/g:"
+    fi
+    # Remove downloaded archives if they exist
+    [ -f "${AC_DIR}Steamless.zip" ] && rm -f "${AC_DIR}Steamless.zip"
+    [ -f "${AC_DIR}3Dmigoto-1.3.16.zip" ] && rm -f "${AC_DIR}3Dmigoto-1.3.16.zip"
+    # Remove temporary Steamless folder if it exists
+    [ -d "${AC_DIR}Steamless" ] && rm -rf "${AC_DIR}Steamless"
+}
+trap cleanup EXIT
 
 # Function to display success message in green
 function success_message() {
@@ -54,12 +73,12 @@ fi
 
 
 info_message "Moving mod files to game directory"
-# Move Mods, ShaderFixes, and magic.py to AC_DIR using rsync
-for ITEM in "Mods" "ShaderFixes" "magic.py"; do
+# Move Mods, ShaderFixes, and resolution_patch.py to AC_DIR using rsync
+for ITEM in "Mods" "ShaderFixes" "resolution_patch.py"; do
     if [ -e "$SCRIPT_DIR/$ITEM" ]; then
         rsync -a "$SCRIPT_DIR/$ITEM" "$AC_DIR"
         if [ $? -eq 0 ]; then
-            success_message "$ITEM moved."
+            :
         else
             failure_message "Failed to move $ITEM to $AC_DIR."
         fi
@@ -73,20 +92,16 @@ info_message "Downloading 3Dmigoto"
 wget -q --show-progress --force-directories -O "${AC_DIR}3Dmigoto-1.3.16.zip" "$MIGOTO_URL"
 
 # Check if the download was successful
-if [ $? -eq 0 ]; then
-    success_message "Download completed successfully!"
-else
+if [ $? -ne 0 ]; then
     failure_message "Failed to download file."
 fi
 
 info_message "Unzipping 3Dmigoto"
-# Unzip 3Dmigoto to the destination directory
-unzip -o "${AC_DIR}3Dmigoto-1.3.16.zip" -d "$AC_DIR"
+# Unzip 3Dmigoto to the destination directory (quiet)
+unzip -qq -o "${AC_DIR}3Dmigoto-1.3.16.zip" -d "$AC_DIR"
 
 # Check if the unzip was successful
-if [ $? -eq 0 ];then
-    success_message "Unzip completed successfully!"
-else
+if [ $? -ne 0 ];then
     failure_message "Failed to unzip file."
 fi
 
@@ -106,48 +121,31 @@ info_message "Downloading Steamless"
 wget -q "$STEAMLESS_URL" -O "${AC_DIR}Steamless.zip"
 
 info_message "Unzipping Steamless"
-# Unzip Steamless to the destination directory
-unzip -o "${AC_DIR}Steamless.zip" -d "${AC_DIR}Steamless"
+# Unzip Steamless to the destination directory (quiet)
+unzip -qq -o "${AC_DIR}Steamless.zip" -d "${AC_DIR}Steamless"
 
 # Check if the unzip was successful
-if [ $? -eq 0 ]; then
-    success_message "Steamless unzip completed successfully!"
-else
+if [ $? -ne 0 ]; then
     failure_message "Failed to unzip Steamless."
 fi
 
-info_message "Please wait, starting winecfg, this will take around 20-60 seconds."
-instruction_message "Once winecfg window appears, open Drives → select 'Show dot files' and click 'OK'"
+info_message "Prep finished (files moved/downloaded/unpacked). Launching Steamless next."
+echo ""
 
-# Run winecfg with protontricks for the game and wait until closed
-if flatpak list | grep -q com.github.Matoking.protontricks; then
-    info_message "Running winecfg using Flatpak Protontricks..."
-    flatpak run com.github.Matoking.protontricks 502500 winecfg >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        success_message "winecfg has been closed."
-    else
-        failure_message "Failed to run winecfg with Flatpak Protontricks."
-    fi
+# Map an extra Wine drive letter (G:) directly to the game folder for the file picker
+if [ -d "$DOSDEV_DIR" ]; then
+    ln -snf "$AC_DIR" "${DOSDEV_DIR}/g:" || failure_message "Failed to map Wine drive G: to $AC_DIR"
 else
-    info_message "Flatpak Protontricks not found, using system-installed Protontricks..."
-    protontricks 502500 winecfg >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        success_message "winecfg has been closed."
-    else
-        failure_message "Failed to run winecfg with system-installed Protontricks."
-    fi
+    failure_message "Proton prefix dosdevices directory not found at $DOSDEV_DIR; cannot map drive G:"
 fi
 
-info_message "Steamless is starting now, this will take some time."
-instruction_message "In Steamless: Select File to Unpack [...] and then navigate to:"
-instruction_message "Disk '/' → home → deck → .local → share → Steam → steamapps → common → ACE COMBAT 7 → Ace7Game.exe"
-instruction_message "Select 'Unpack file', and once you see 'Successfully unpacked file' close the Steamless window"
+instruction_message "In Steamless: click 'My Computer' → open drive G: → select Ace7Game.exe → click 'Open' → click 'Unpack file' → close after 'Successfully unpacked file'"
 # Run Steamless executable with protontricks-launch and wait until closed
 if flatpak list | grep -q com.github.Matoking.protontricks; then
     info_message "Running Steamless using Flatpak Protontricks..."
     flatpak run --command=protontricks-launch com.github.Matoking.protontricks --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        success_message "Steamless has been closed."
+        :
     else
         failure_message "Failed to execute Steamless with Flatpak Protontricks."
     fi
@@ -155,7 +153,7 @@ else
     info_message "Flatpak Protontricks not found, using system-installed Protontricks-launch..."
     protontricks-launch --appid 502500 "${AC_DIR}Steamless/Steamless.exe" >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        success_message "Steamless has been closed."
+        :
     else
         failure_message "Failed to execute Steamless with system-installed Protontricks-launch."
     fi
@@ -166,7 +164,7 @@ info_message "Renaming patched .exe"
 if [ -f "${AC_DIR}Ace7Game.exe.unpacked.exe" ]; then
     mv "${AC_DIR}Ace7Game.exe.unpacked.exe" "${AC_DIR}Ace7Game.exe"
     if [ $? -eq 0 ]; then
-        success_message "Renamed Ace7Game.exe.unpacked.exe to Ace7Game.exe successfully."
+        :
     else
         failure_message "Failed to rename Ace7Game.exe.unpacked.exe."
     fi
@@ -177,13 +175,15 @@ fi
 # Execute patching script
 info_message "Applying resolution fix"
 cd "$AC_DIR" || exit 1
-if [ -f "${AC_DIR}magic.py" ]; then
-    python3 "${AC_DIR}magic.py"
+if [ -f "${AC_DIR}resolution_patch.py" ]; then
+    python3 "${AC_DIR}resolution_patch.py"
     if [ $? -eq 0 ]; then
-        success_message "magic.py ran succesfully."
+        :
     else
-        failure_message "Failed to execute magic.py."
+        failure_message "Failed to execute resolution_patch.py."
     fi
 else
-    failure_message "magic.py not found in ${AC_DIR}."
+    failure_message "resolution_patch.py not found in ${AC_DIR}."
 fi
+
+info_message "Resolution fix applied. If you want to clean up everything, run ./cleanup.sh"
